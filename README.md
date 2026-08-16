@@ -1,7 +1,7 @@
 # Android-Screener
 A simple Shizuku tool for easily adjusting screen resolution and frame rate
 
-> Still under development
+> Originally made by jiesou, maintained by me (frostre_)
 
 > I am busy with my studies and have no time to update this app (for now). Contributions welcome
 
