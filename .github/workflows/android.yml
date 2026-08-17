@@ -1,4 +1,4 @@
-name: Build Canvas APK
+name: Canvas APK
 
 on:
   push:
