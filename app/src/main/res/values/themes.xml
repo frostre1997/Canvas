@@ -1,5 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<resources>
-    <!-- Minimal theme – works with Compose -->
-    <style name="Theme.Canvas" parent="android:Theme.Material.Light.NoActionBar" />
-</resources>
