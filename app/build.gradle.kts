@@ -11,8 +11,8 @@ android {
         applicationId = "com.canvas.android.app"
         minSdk = 29
         targetSdk = 34
-        versionCode = 1001
-        versionName = "0.100.1"
+        versionCode = 1000
+        versionName = "0.100.0"
     }
 
     buildFeatures {
