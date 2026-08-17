@@ -4,11 +4,11 @@
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
         android:label="Canvas"
-        android:theme="@android:style/Theme.NoTitleBar">
+        android:theme="@style/Theme.Canvas">
         <activity
             android:name=".MainActivity"
             android:exported="true"
-            android:theme="@android:style/Theme.NoTitleBar">
+            android:theme="@style/Theme.Canvas">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
