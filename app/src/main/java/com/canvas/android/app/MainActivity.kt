@@ -34,7 +34,9 @@ class MainActivity : ComponentActivity() {
         setContent {
             CanvasTheme {
                 Surface(modifier = Modifier.fillMaxSize()) {
-                    ResolutionScreen()
+                    ResolutionScreen(
+                        activity = this@MainActivity
+                    )
                 }
             }
         }
@@ -43,6 +45,7 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 fun ResolutionScreen(
+    activity: ComponentActivity,
     viewModel: ResolutionViewModel = viewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -96,7 +99,7 @@ fun ResolutionScreen(
                     fontWeight = FontWeight.Medium
                 )
                 if (!shizukuReady) {
-                    Button(onClick = { ShizukuHelper.requestPermission(context as ComponentActivity) }) {
+                    Button(onClick = { ShizukuHelper.requestPermission(activity) }) {
                         Text("Grant Permission")
                     }
                 }
