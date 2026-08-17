@@ -24,19 +24,16 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        // Shizuku permission listener
         Shizuku.addRequestPermissionResultListener { _, grantResult ->
             if (grantResult == PackageManager.PERMISSION_GRANTED) {
-                // permission granted – UI will react via ViewModel
+                // permission granted – UI reacts via ViewModel
             }
         }
 
         setContent {
             CanvasTheme {
                 Surface(modifier = Modifier.fillMaxSize()) {
-                    ResolutionScreen(
-                        activity = this@MainActivity
-                    )
+                    ResolutionScreen(activity = this@MainActivity)
                 }
             }
         }
@@ -51,7 +48,6 @@ fun ResolutionScreen(
     val uiState by viewModel.uiState.collectAsState()
     val shizukuReady = ShizukuHelper.isReady() && ShizukuHelper.hasPermission()
 
-    // Fetch screen info when Shizuku is ready
     LaunchedEffect(shizukuReady) {
         if (shizukuReady) {
             viewModel.fetchScreenResolution()
@@ -67,56 +63,31 @@ fun ResolutionScreen(
     ) {
         // Header
         Text(
-            text = "Canvas",
-            fontSize = 32.sp,
+            text = "Resolution",
+            fontSize = 28.sp,
             fontWeight = FontWeight.Bold,
             color = MaterialTheme.colorScheme.primary
         )
-        Text(
-            text = "v0.100.0",
-            fontSize = 14.sp,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
 
-        // Shizuku status
-        Card(
-            colors = CardDefaults.cardColors(
-                containerColor = if (shizukuReady)
-                    MaterialTheme.colorScheme.primaryContainer
-                else
-                    MaterialTheme.colorScheme.errorContainer
-            )
-        ) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
+        // Physical resolution info (card)
+        val physical = uiState.physicalResolution
+        if (physical != null) {
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.surfaceVariant
+                )
             ) {
                 Text(
-                    text = if (shizukuReady) "Shizuku Connected" else "Shizuku Required",
-                    fontWeight = FontWeight.Medium
+                    text = "Physical ${physical["height"]}x${physical["width"]}; DPI ${physical["dpi"]}",
+                    modifier = Modifier.padding(16.dp),
+                    fontSize = 14.sp,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
-                if (!shizukuReady) {
-                    Button(onClick = { ShizukuHelper.requestPermission(activity) }) {
-                        Text("Grant Permission")
-                    }
-                }
             }
         }
 
-        // Current resolution info
-        val physical = uiState.physicalResolution
-        if (physical != null) {
-            Text(
-                text = "Physical: ${physical["height"]}x${physical["width"]} @ ${physical["dpi"]}dpi",
-                fontSize = 14.sp,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-        }
-
-        // Height input
+        // Height field
         OutlinedTextField(
             value = uiState.height,
             onValueChange = { viewModel.updateHeight(it) },
@@ -126,7 +97,7 @@ fun ResolutionScreen(
             modifier = Modifier.fillMaxWidth()
         )
 
-        // Width input
+        // Width field
         OutlinedTextField(
             value = uiState.width,
             onValueChange = { viewModel.updateWidth(it) },
@@ -136,7 +107,7 @@ fun ResolutionScreen(
             modifier = Modifier.fillMaxWidth()
         )
 
-        // DPI input
+        // DPI field
         OutlinedTextField(
             value = uiState.dpi,
             onValueChange = { viewModel.updateDpi(it) },
@@ -146,15 +117,26 @@ fun ResolutionScreen(
             modifier = Modifier.fillMaxWidth()
         )
 
-        // Scale slider (0-100)
-        Text("Scale: ${uiState.scale}%", fontSize = 14.sp)
-        Slider(
-            value = uiState.scale.toFloat(),
-            onValueChange = { viewModel.updateScale(it.toInt()) },
-            valueRange = 50f..150f,
-            steps = 10,
-            modifier = Modifier.fillMaxWidth()
-        )
+        // Scale slider
+        Column(
+            modifier = Modifier.fillMaxWidth(),
+            verticalArrangement = Arrangement.spacedBy(4.dp)
+        ) {
+            Text(
+                text = "Scale: ${uiState.scale}%",
+                fontSize = 14.sp,
+                fontWeight = FontWeight.Medium
+            )
+            Slider(
+                value = uiState.scale.toFloat(),
+                onValueChange = { viewModel.updateScale(it.toInt()) },
+                valueRange = 50f..150f,
+                steps = 10,
+                modifier = Modifier.fillMaxWidth()
+            )
+        }
+
+        Spacer(modifier = Modifier.height(8.dp))
 
         // Apply and Reset buttons
         Row(
@@ -188,33 +170,70 @@ fun ResolutionScreen(
 
         // Countdown / revert UI
         if (uiState.isReverting) {
-            Text(
-                text = "Reverting in ${uiState.countdown} seconds...",
-                color = MaterialTheme.colorScheme.primary,
-                fontWeight = FontWeight.Medium
-            )
-            LinearProgressIndicator(
-                progress = { uiState.countdown / 10f },
-                modifier = Modifier.fillMaxWidth()
-            )
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(16.dp)
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                Button(
-                    onClick = { viewModel.keepChanges() },
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.primary
-                    )
+                Text(
+                    text = "Reverting in ${uiState.countdown} seconds...",
+                    color = MaterialTheme.colorScheme.primary,
+                    fontWeight = FontWeight.Medium
+                )
+                LinearProgressIndicator(
+                    progress = { uiState.countdown / 10f },
+                    modifier = Modifier.fillMaxWidth()
+                )
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
-                    Text("Keep")
+                    Button(
+                        onClick = { viewModel.keepChanges() },
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.primary
+                        )
+                    ) {
+                        Text("Keep")
+                    }
+                    Button(
+                        onClick = { viewModel.revertNow() },
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.error
+                        )
+                    ) {
+                        Text("Revert")
+                    }
                 }
-                Button(
-                    onClick = { viewModel.revertNow() },
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.error
-                    )
-                ) {
-                    Text("Revert")
+            }
+        }
+
+        // Shizuku status (bottom)
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            colors = CardDefaults.cardColors(
+                containerColor = if (shizukuReady)
+                    MaterialTheme.colorScheme.primaryContainer
+                else
+                    MaterialTheme.colorScheme.errorContainer
+            )
+        ) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(12.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = if (shizukuReady) "Shizuku Connected" else "Shizuku Required",
+                    fontWeight = FontWeight.Medium
+                )
+                if (!shizukuReady) {
+                    Button(
+                        onClick = { ShizukuHelper.requestPermission(activity) },
+                        modifier = Modifier.height(36.dp)
+                    ) {
+                        Text("Grant Permission")
+                    }
                 }
             }
         }
