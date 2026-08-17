@@ -17,11 +17,15 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Set up JDK 17
-        uses: actions/setup-java@v5
+        uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
           java-version: '17'
           cache: 'gradle'
+
+      # ----- Fix: make gradlew executable -----
+      - name: Make Gradle wrapper executable
+        run: chmod +x gradlew
 
       - name: Run Unit Tests
         run: ./gradlew testDebugUnitTest
@@ -31,3 +35,4 @@ jobs:
         with:
           name: test-reports
           path: app/build/reports/tests/
+        if: always()
