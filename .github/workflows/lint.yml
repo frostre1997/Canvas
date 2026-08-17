@@ -17,18 +17,26 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Set up JDK 17
-        uses: actions/setup-java@v5
+        uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
           java-version: '17'
           cache: 'gradle'
 
-      # ----- Fix: make gradlew executable -----
       - name: Make Gradle wrapper executable
         run: chmod +x gradlew
 
       - name: Run Lint
         run: ./gradlew lintDebug
+
+      # Debug: verify the report exists
+      - name: List lint report files
+        run: |
+          echo "Listing app/build/reports/"
+          ls -la app/build/reports/ || true
+          echo "Listing app/build/reports/lint-results*"
+          ls -la app/build/reports/lint-results* || true
+        if: always()
 
       - name: Report Lint Results
         uses: hidakatsuya/action-report-android-lint@v1
@@ -36,4 +44,4 @@ jobs:
           result-path: 'app/build/reports/lint-results-debug.xml'
           fail-on-warning: true
           follow-symbolic-links: true
-        if: always()   # even if lint fails, upload the report (if it exists)
+        if: always()
