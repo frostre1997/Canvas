@@ -1,0 +1,33 @@
+name: Run Android Lint
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
+  workflow_dispatch:
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v5
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+          cache: 'gradle'
+
+      - name: Run Lint
+        run: ./gradlew lintDebug
+
+      - name: Report Lint Results
+        uses: hidakatsuya/action-report-android-lint@v1
+        with:
+          result-path: 'app/build/reports/lint-results-debug.xml'
+        if: always()
