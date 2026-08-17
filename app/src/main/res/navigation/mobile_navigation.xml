@@ -23,7 +23,6 @@
         android:label="Settings"
         tools:layout="@layout/fragment_settings" />
 
-    <!-- Confirmation dialog for resolution revert -->
     <dialog
         android:id="@+id/nav_resolution_confirmation"
         android:name="com.canvas.android.app.ui.resolution.ConfirmationDialogFragment"
