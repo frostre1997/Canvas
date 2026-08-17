@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/mobile_navigation"
+    app:startDestination="@id/nav_resolution">
+
+    <fragment
+        android:id="@+id/nav_resolution"
+        android:name="com.canvas.android.app.ui.resolution.ResolutionFragment"
+        android:label="Resolution"
+        tools:layout="@layout/fragment_resolution" />
+
+    <fragment
+        android:id="@+id/nav_frame_rate"
+        android:name="com.canvas.android.app.ui.framerate.FrameRateFragment"
+        android:label="Frame Rate"
+        tools:layout="@layout/fragment_frame_rate" />
+
+    <fragment
+        android:id="@+id/nav_settings"
+        android:name="com.canvas.android.app.ui.settings.SettingsFragment"
+        android:label="Settings"
+        tools:layout="@layout/fragment_settings" />
+
+    <!-- Confirmation dialog for resolution revert -->
+    <dialog
+        android:id="@+id/nav_resolution_confirmation"
+        android:name="com.canvas.android.app.ui.resolution.ConfirmationDialogFragment"
+        android:label="Confirmation" />
+
+</navigation>
