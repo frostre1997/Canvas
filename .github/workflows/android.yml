@@ -35,6 +35,10 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-gradle-
 
+      # ... after setup-java step ...
+      - name: Make Gradle wrapper executable
+        run: chmod +x gradlew
+
       - name: Build Debug APK
         run: ./gradlew assembleDebug
 
