@@ -15,6 +15,7 @@ import com.canvas.android.app.MainViewModel
 import com.canvas.android.app.R
 import com.canvas.android.app.databinding.FragmentResolutionBinding
 import com.canvas.android.app.units.ApiCaller
+import com.google.android.material.snackbar.Snackbar
 import kotlin.math.pow
 import kotlin.math.roundToInt
 import kotlin.math.sqrt
@@ -69,7 +70,6 @@ class ResolutionFragment : Fragment() {
             }
         }
 
-        // If already granted, fetch immediately
         if (mainViewModel.shizukuPermissionGranted.value == true) {
             viewModel.fetchScreenResolution()
         }
@@ -125,7 +125,6 @@ class ResolutionFragment : Fragment() {
                 return@setOnClickListener
             }
             apiCaller.resetResolution()
-            // Refresh the view after reset
             viewModel.fetchScreenResolution()
         }
     }
