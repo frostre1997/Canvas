@@ -30,17 +30,6 @@ class MainActivity : AppCompatActivity() {
             supportFragmentManager.findFragmentById(R.id.nav_host_fragment_activity_main) as NavHostFragment
         val navController = navHostFragment.navController
 
-        // Ensure the graph has a start destination (fallback)
-        try {
-            // If the navigation graph doesn't have startDestination, set it programmatically
-            val graph = navController.navInflater.inflate(R.navigation.mobile_navigation)
-            navController.setGraph(graph, R.id.nav_resolution)
-        } catch (e: Exception) {
-            e.printStackTrace()
-            // If that fails, we can't do much, but show a message
-            Snackbar.make(binding.root, "Navigation error, please restart", Snackbar.LENGTH_LONG).show()
-        }
-
         val appBarConfiguration = AppBarConfiguration(
             setOf(
                 R.id.nav_resolution,
