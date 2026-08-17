@@ -23,6 +23,10 @@ jobs:
           java-version: '17'
           cache: 'gradle'
 
+      # ----- Fix: make gradlew executable -----
+      - name: Make Gradle wrapper executable
+        run: chmod +x gradlew
+
       - name: Run Lint
         run: ./gradlew lintDebug
 
@@ -30,4 +34,6 @@ jobs:
         uses: hidakatsuya/action-report-android-lint@v1
         with:
           result-path: 'app/build/reports/lint-results-debug.xml'
-        if: always()
+          fail-on-warning: true
+          follow-symbolic-links: true
+        if: always()   # even if lint fails, upload the report (if it exists)
