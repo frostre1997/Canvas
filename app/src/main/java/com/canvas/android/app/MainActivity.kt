@@ -30,6 +30,17 @@ class MainActivity : AppCompatActivity() {
             supportFragmentManager.findFragmentById(R.id.nav_host_fragment_activity_main) as NavHostFragment
         val navController = navHostFragment.navController
 
+        // Ensure the graph has a start destination (fallback)
+        try {
+            // If the navigation graph doesn't have startDestination, set it programmatically
+            val graph = navController.navInflater.inflate(R.navigation.mobile_navigation)
+            navController.setGraph(graph, R.id.nav_resolution)
+        } catch (e: Exception) {
+            e.printStackTrace()
+            // If that fails, we can't do much, but show a message
+            Snackbar.make(binding.root, "Navigation error, please restart", Snackbar.LENGTH_LONG).show()
+        }
+
         val appBarConfiguration = AppBarConfiguration(
             setOf(
                 R.id.nav_resolution,
@@ -40,13 +51,11 @@ class MainActivity : AppCompatActivity() {
         setupActionBarWithNavController(navController, appBarConfiguration)
         binding.navView.setupWithNavController(navController)
 
-        // Register Shizuku permission result listener
         Shizuku.addRequestPermissionResultListener { _, grantResult ->
             if (grantResult == PackageManager.PERMISSION_GRANTED) {
                 mainViewModel.shizukuPermissionGranted.value = true
                 Snackbar.make(binding.root, R.string.shizuku_permission_granted, Snackbar.LENGTH_SHORT).show()
             } else {
-                // Permission denied – show message
                 Snackbar.make(binding.root, "Shizuku permission denied", Snackbar.LENGTH_SHORT).show()
             }
         }
@@ -54,13 +63,10 @@ class MainActivity : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
-        // Check permission on resume without crashing
         try {
             if (checkPermission()) {
                 mainViewModel.shizukuPermissionGranted.value = true
             } else {
-                // Only show snackbar if we haven't already
-                // We'll request permission automatically
                 if (Shizuku.getVersion() > 0 && Shizuku.getBinder() != null) {
                     if (Shizuku.checkSelfPermission() != PackageManager.PERMISSION_GRANTED) {
                         Shizuku.requestPermission(0)
@@ -69,7 +75,6 @@ class MainActivity : AppCompatActivity() {
             }
         } catch (e: Exception) {
             e.printStackTrace()
-            // Shizuku not available – silently handle
         }
     }
 
