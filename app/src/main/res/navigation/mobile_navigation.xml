@@ -8,24 +8,24 @@
     <fragment
         android:id="@+id/nav_resolution"
         android:name="com.canvas.android.app.ui.resolution.ResolutionFragment"
-        android:label="Resolution"
+        android:label="@string/title_resolution"
         tools:layout="@layout/fragment_resolution" />
 
     <fragment
         android:id="@+id/nav_frame_rate"
         android:name="com.canvas.android.app.ui.framerate.FrameRateFragment"
-        android:label="Frame Rate"
+        android:label="@string/title_frame_rate"
         tools:layout="@layout/fragment_frame_rate" />
 
     <fragment
         android:id="@+id/nav_settings"
         android:name="com.canvas.android.app.ui.settings.SettingsFragment"
-        android:label="Settings"
+        android:label="@string/title_settings"
         tools:layout="@layout/fragment_settings" />
 
     <dialog
         android:id="@+id/nav_resolution_confirmation"
         android:name="com.canvas.android.app.ui.resolution.ConfirmationDialogFragment"
-        android:label="Confirmation" />
+        android:label="@string/confirmation_dialog" />
 
 </navigation>
