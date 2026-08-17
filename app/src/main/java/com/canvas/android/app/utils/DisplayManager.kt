@@ -1,11 +1,14 @@
 package com.canvas.android.app.utils
 
 import rikka.shizuku.Shizuku
+import java.io.BufferedReader
+import java.io.InputStreamReader
 
 class DisplayManager {
 
     private fun exec(command: String): String {
         return try {
+            // Try using Shizuku first
             val process = Shizuku.newProcess(arrayOf("sh", "-c", command), null, null)
             val exitCode = process.waitFor()
             val output = process.inputStream.bufferedReader().readText()
@@ -13,7 +16,17 @@ class DisplayManager {
             process.destroy()
             if (exitCode != 0) "ERROR: $error" else output
         } catch (e: Exception) {
-            "EXCEPTION: ${e.message}"
+            // Fallback to root shell (if available)
+            try {
+                val process = Runtime.getRuntime().exec(arrayOf("su", "-c", command))
+                val exitCode = process.waitFor()
+                val output = process.inputStream.bufferedReader().readText()
+                val error = process.errorStream.bufferedReader().readText()
+                process.destroy()
+                if (exitCode != 0) "ERROR (root): $error" else output
+            } catch (e2: Exception) {
+                "EXCEPTION: ${e2.message}"
+            }
         }
     }
 
