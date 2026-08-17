@@ -2,7 +2,7 @@
 
 A simple Shizuku tool for easily adjusting screen resolution and frame rate
 
-> Originally made by jiesou, maintained by me (frostre_) aka Alex
+> Originally made by jiesou, maintained by me (frostre1997)
 
 ## Screenshots (Preview)
 
