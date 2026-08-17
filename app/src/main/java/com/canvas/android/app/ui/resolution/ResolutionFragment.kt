@@ -5,16 +5,15 @@ import android.text.Editable
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.EditText
 import androidx.core.widget.doAfterTextChanged
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
-import androidx.navigation.fragment.findNavController
 import com.canvas.android.app.MainViewModel
 import com.canvas.android.app.R
 import com.canvas.android.app.databinding.FragmentResolutionBinding
 import com.canvas.android.app.units.ApiCaller
-import com.google.android.material.chip.Chip
 import kotlin.math.pow
 import kotlin.math.roundToInt
 import kotlin.math.sqrt
@@ -24,22 +23,23 @@ class ResolutionFragment : Fragment() {
     private var _binding: FragmentResolutionBinding? = null
     private val binding get() = _binding!!
 
-    private val resolutionViewModel: ResolutionViewModel by viewModels()
+    private val viewModel: ResolutionViewModel by viewModels()
     private val mainViewModel by activityViewModels<MainViewModel>()
     private lateinit var apiCaller: ApiCaller
 
     private var stuckScaleValue = 0
 
-    private val textHeight get() = binding.resolutionEditor.textHeight.editText!!
-    private val textWidth get() = binding.resolutionEditor.textWidth.editText!!
-    private val textDpi get() = binding.resolutionEditor.textDpi.editText!!
+    // Direct references to EditText from the binding
+    private val textHeight: EditText get() = binding.resolutionEditor.textHeight
+    private val textWidth: EditText get() = binding.resolutionEditor.textWidth
+    private val textDpi: EditText get() = binding.resolutionEditor.textDpi
 
     private val scaledHeight get() = textHeight.text.toString().toFloatOrNull() ?: 0f
     private val scaledWidth get() = textWidth.text.toString().toFloatOrNull() ?: 0f
     private val scaledDpi get() = textDpi.text.toString().toFloatOrNull() ?: 0f
-    private val scaleValue get() = binding.resolutionEditor.sliderScale.value.toInt()
+    private val scaleValue get() = binding.resolutionEditor.sliderScale.progress
 
-    private val physical get() = resolutionViewModel.physicalResolutionMap.value
+    private val physical get() = viewModel.physicalResolutionMap.value
 
     private val physicalAdjRatio get() = physical?.let {
         sqrt(
@@ -64,39 +64,30 @@ class ResolutionFragment : Fragment() {
         apiCaller = ApiCaller()
 
         mainViewModel.shizukuPermissionGranted.observe(viewLifecycleOwner) {
-            if (it) resolutionViewModel.fetchScreenResolution()
+            if (it) viewModel.fetchScreenResolution()
         }
 
-        resolutionViewModel.physicalResolutionMap.observe(viewLifecycleOwner) {
+        viewModel.physicalResolutionMap.observe(viewLifecycleOwner) {
             if (it == null) return@observe
             binding.textResolution.text = "Physical ${it["height"]}x${it["width"]}; DPI ${it["dpi"]}"
         }
 
-        resolutionViewModel.resolutionMap.observe(viewLifecycleOwner) {
+        viewModel.resolutionMap.observe(viewLifecycleOwner) {
             textHeight.setText(it?.get("height")?.toInt()?.toString())
             textWidth.setText(it?.get("width")?.toInt()?.toString())
             textDpi.setText(it?.get("dpi")?.toInt()?.toString())
         }
 
-        val chipGroup = binding.resolutionEditor.chipGroup
-        resolutionViewModel.usersList.observe(viewLifecycleOwner) {
-            if (it.isEmpty()) return@observe
-            chipGroup.removeAllViews()
-            for (user in it) {
-                chipGroup.addView(Chip(chipGroup.context).apply {
-                    text = "${user?.get("name")} (${user?.get("id")})"
-                    isCheckable = true
-                })
+        // Scale slider listener
+        binding.resolutionEditor.sliderScale.setOnSeekBarChangeListener(object : android.widget.SeekBar.OnSeekBarChangeListener {
+            override fun onProgressChanged(seekBar: android.widget.SeekBar?, progress: Int, fromUser: Boolean) {
+                if (physical == null) return
+                if (fromUser) stuckScaleValue = progress - 50
+                updateDpiEditor()
             }
-            val firstChip = chipGroup.getChildAt(0) as Chip
-            firstChip.isChecked = true
-        }
-
-        binding.resolutionEditor.sliderScale.addOnChangeListener { _, value, fromUser ->
-            if (physical == null) return@addOnChangeListener
-            if (fromUser) stuckScaleValue = value.toInt()
-            updateDpiEditor()
-        }
+            override fun onStartTrackingTouch(seekBar: android.widget.SeekBar?) {}
+            override fun onStopTrackingTouch(seekBar: android.widget.SeekBar?) {}
+        })
 
         textWidth.doAfterTextChanged { editable: Editable? ->
             handleWidthTextChange(editable ?: return@doAfterTextChanged)
@@ -113,7 +104,7 @@ class ResolutionFragment : Fragment() {
             if (!checkValidResolution(null, null)) return@setOnClickListener
 
             apiCaller.applyResolution(scaledHeight, scaledWidth, scaledDpi)
-            val navController = findNavController()
+            val navController = androidx.navigation.Navigation.findNavController(requireActivity(), R.id.nav_host_fragment_activity_main)
             navController.navigate(R.id.nav_resolution_confirmation)
         }
 
@@ -128,10 +119,10 @@ class ResolutionFragment : Fragment() {
         val dpi = updatedDpi ?: scaledDpi.toInt()
 
         if (scale !in -50..50 || dpi !in 280..840 || scaledHeight !in 480f..4096f || scaledWidth !in 480f..4096f) {
-            binding.resolutionEditor.textDpi.error = getString(R.string.invalid)
+            textDpi.error = getString(R.string.invalid)
             return false
         }
-        binding.resolutionEditor.textDpi.error = null
+        textDpi.error = null
         return true
     }
 
@@ -153,7 +144,7 @@ class ResolutionFragment : Fragment() {
     private fun updateDpiEditor() {
         val scaleRatio = (scaleValue * 0.01 + 1).toFloat()
         val updatedDpi = (baseDpi * scaleRatio).roundToInt()
-        binding.resolutionEditor.textDpi.editText!!.setText(updatedDpi.toString())
+        textDpi.setText(updatedDpi.toString())
         checkValidResolution(updatedScaleValue = null, updatedDpi = updatedDpi)
     }
 
@@ -161,7 +152,7 @@ class ResolutionFragment : Fragment() {
         val scaleRatio = scaledDpi / baseDpi
         val updatedScaleValue = (scaleRatio - 1) * 100
         if (checkValidResolution(updatedScaleValue = updatedScaleValue.toInt(), updatedDpi = null)) {
-            binding.resolutionEditor.sliderScale.value = ((updatedScaleValue / 5).roundToInt() * 5).toFloat()
+            binding.resolutionEditor.sliderScale.progress = ((updatedScaleValue / 5).roundToInt() * 5 + 50)
         }
     }
 

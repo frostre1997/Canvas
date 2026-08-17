@@ -9,7 +9,6 @@ import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.viewModels
 import com.canvas.android.app.R
 import com.canvas.android.app.units.ApiCaller
-import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -20,29 +19,28 @@ class ConfirmationDialogFragment : DialogFragment() {
     private lateinit var apiCaller: ApiCaller
     private lateinit var dialog: AlertDialog
     private lateinit var negativeButton: Button
-
-    private val confirmationDialogViewModel: ConfirmationDialogViewModel by viewModels()
+    private val viewModel: ConfirmationDialogViewModel by viewModels()
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
         apiCaller = ApiCaller()
 
-        confirmationDialogViewModel.confirmCountdown.observe(this) {
-            if (!::negativeButton.isInitialized) return@observe
-            if (it == 0) {
-                confirmationDialogViewModel.confirmCountdownJob?.cancel()
-                negativeButton.performClick()
-            } else {
-                negativeButton.text = getString(R.string.undo_changes, "${it}s")
+        viewModel.confirmCountdown.observe(this) { countdown ->
+            if (::negativeButton.isInitialized) {
+                if (countdown == 0) {
+                    negativeButton.performClick()
+                } else {
+                    negativeButton.text = getString(R.string.undo_changes, "${countdown}s")
+                }
             }
         }
 
         isCancelable = false
 
-        dialog = MaterialAlertDialogBuilder(requireContext())
+        dialog = AlertDialog.Builder(requireContext())
             .setTitle(getString(R.string.success))
             .setMessage(getString(R.string.reset_hint))
             .setPositiveButton(getString(R.string.looks_fine), null)
-            .setNegativeButton(getString(R.string.undo_changes), null)
+            .setNegativeButton(getString(R.string.undo_changes, "10s"), null)
             .create()
 
         dialog.setOnShowListener {
@@ -58,20 +56,15 @@ class ConfirmationDialogFragment : DialogFragment() {
         negativeButton.setOnClickListener {
             negativeButton.text = getString(R.string.undo_changes, getString(R.string.undone))
             apiCaller.resetResolution()
+            dismiss()
         }
 
-        if (confirmationDialogViewModel.confirmCountdownJob == null) {
-            startConfirmCountdown()
-        } else {
-            confirmationDialogViewModel.confirmCountdown.postValue(0)
-        }
-    }
-
-    private fun startConfirmCountdown() {
-        confirmationDialogViewModel.confirmCountdownJob = CoroutineScope(Dispatchers.Main).launch {
-            for (countdown in 9 downTo 0) {
-                confirmationDialogViewModel.confirmCountdown.postValue(countdown)
+        // Start countdown
+        viewModel.setCountdown(10)
+        CoroutineScope(Dispatchers.Main).launch {
+            for (i in 9 downTo 0) {
                 delay(1000)
+                viewModel.setCountdown(i)
             }
         }
     }
