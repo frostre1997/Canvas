@@ -10,6 +10,7 @@ import androidx.core.widget.doAfterTextChanged
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
+import androidx.navigation.Navigation
 import com.canvas.android.app.MainViewModel
 import com.canvas.android.app.R
 import com.canvas.android.app.databinding.FragmentResolutionBinding
@@ -29,7 +30,6 @@ class ResolutionFragment : Fragment() {
 
     private var stuckScaleValue = 0
 
-    // Direct references to EditText from the binding
     private val textHeight: EditText get() = binding.resolutionEditor.textHeight
     private val textWidth: EditText get() = binding.resolutionEditor.textWidth
     private val textDpi: EditText get() = binding.resolutionEditor.textDpi
@@ -48,7 +48,7 @@ class ResolutionFragment : Fragment() {
         )
     } ?: 1f
 
-    private val baseDpi get() = physical?.get("dpi")!! * physicalAdjRatio
+    private val baseDpi get() = (physical?.get("dpi") ?: 240f) * physicalAdjRatio
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -64,7 +64,14 @@ class ResolutionFragment : Fragment() {
         apiCaller = ApiCaller()
 
         mainViewModel.shizukuPermissionGranted.observe(viewLifecycleOwner) {
-            if (it) viewModel.fetchScreenResolution()
+            if (it == true) {
+                viewModel.fetchScreenResolution()
+            }
+        }
+
+        // If already granted, fetch immediately
+        if (mainViewModel.shizukuPermissionGranted.value == true) {
+            viewModel.fetchScreenResolution()
         }
 
         viewModel.physicalResolutionMap.observe(viewLifecycleOwner) {
@@ -73,12 +80,13 @@ class ResolutionFragment : Fragment() {
         }
 
         viewModel.resolutionMap.observe(viewLifecycleOwner) {
-            textHeight.setText(it?.get("height")?.toInt()?.toString())
-            textWidth.setText(it?.get("width")?.toInt()?.toString())
-            textDpi.setText(it?.get("dpi")?.toInt()?.toString())
+            it?.let {
+                textHeight.setText(it["height"]?.toInt()?.toString() ?: "")
+                textWidth.setText(it["width"]?.toInt()?.toString() ?: "")
+                textDpi.setText(it["dpi"]?.toInt()?.toString() ?: "")
+            }
         }
 
-        // Scale slider listener
         binding.resolutionEditor.sliderScale.setOnSeekBarChangeListener(object : android.widget.SeekBar.OnSeekBarChangeListener {
             override fun onProgressChanged(seekBar: android.widget.SeekBar?, progress: Int, fromUser: Boolean) {
                 if (physical == null) return
@@ -100,17 +108,25 @@ class ResolutionFragment : Fragment() {
         }
 
         binding.btApply.setOnClickListener {
-            if (mainViewModel.shizukuPermissionGranted.value != true) return@setOnClickListener
+            if (mainViewModel.shizukuPermissionGranted.value != true) {
+                Snackbar.make(binding.root, "Shizuku not ready", Snackbar.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
             if (!checkValidResolution(null, null)) return@setOnClickListener
 
             apiCaller.applyResolution(scaledHeight, scaledWidth, scaledDpi)
-            val navController = androidx.navigation.Navigation.findNavController(requireActivity(), R.id.nav_host_fragment_activity_main)
+            val navController = Navigation.findNavController(requireActivity(), R.id.nav_host_fragment_activity_main)
             navController.navigate(R.id.nav_resolution_confirmation)
         }
 
         binding.btReset.setOnClickListener {
-            if (mainViewModel.shizukuPermissionGranted.value != true) return@setOnClickListener
+            if (mainViewModel.shizukuPermissionGranted.value != true) {
+                Snackbar.make(binding.root, "Shizuku not ready", Snackbar.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
             apiCaller.resetResolution()
+            // Refresh the view after reset
+            viewModel.fetchScreenResolution()
         }
     }
 

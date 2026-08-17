@@ -22,10 +22,15 @@ class ResolutionViewModel : ViewModel() {
 
     fun fetchScreenResolution() {
         viewModelScope.launch {
-            val resolutionMap = apiCaller.fetchScreenResolution()
-            _physicalResolutionMap.postValue(resolutionMap["physical"])
-            _resolutionMap.postValue(resolutionMap["override"])
-            _usersList.postValue(apiCaller.fetchUsers())
+            try {
+                val resolutionMap = apiCaller.fetchScreenResolution()
+                _physicalResolutionMap.postValue(resolutionMap["physical"])
+                _resolutionMap.postValue(resolutionMap["override"])
+                _usersList.postValue(apiCaller.fetchUsers())
+            } catch (e: Exception) {
+                e.printStackTrace()
+                // Leave values as null – UI will handle gracefully
+            }
         }
     }
 }

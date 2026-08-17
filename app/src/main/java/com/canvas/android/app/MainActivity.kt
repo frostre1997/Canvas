@@ -40,20 +40,36 @@ class MainActivity : AppCompatActivity() {
         setupActionBarWithNavController(navController, appBarConfiguration)
         binding.navView.setupWithNavController(navController)
 
+        // Register Shizuku permission result listener
         Shizuku.addRequestPermissionResultListener { _, grantResult ->
             if (grantResult == PackageManager.PERMISSION_GRANTED) {
                 mainViewModel.shizukuPermissionGranted.value = true
                 Snackbar.make(binding.root, R.string.shizuku_permission_granted, Snackbar.LENGTH_SHORT).show()
+            } else {
+                // Permission denied – show message
+                Snackbar.make(binding.root, "Shizuku permission denied", Snackbar.LENGTH_SHORT).show()
             }
         }
     }
 
     override fun onResume() {
         super.onResume()
-        if (checkPermission()) {
-            mainViewModel.shizukuPermissionGranted.value = true
-        } else {
-            Snackbar.make(binding.root, R.string.shizuku_not_available, Snackbar.LENGTH_SHORT).show()
+        // Check permission on resume without crashing
+        try {
+            if (checkPermission()) {
+                mainViewModel.shizukuPermissionGranted.value = true
+            } else {
+                // Only show snackbar if we haven't already
+                // We'll request permission automatically
+                if (Shizuku.getVersion() > 0 && Shizuku.getBinder() != null) {
+                    if (Shizuku.checkSelfPermission() != PackageManager.PERMISSION_GRANTED) {
+                        Shizuku.requestPermission(0)
+                    }
+                }
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+            // Shizuku not available – silently handle
         }
     }
 
