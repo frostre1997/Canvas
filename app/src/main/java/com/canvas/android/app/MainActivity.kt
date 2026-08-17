@@ -94,7 +94,7 @@ fun CanvasDashboard(
             color = MaterialTheme.colorScheme.primary
         )
         Text(
-            text = "v0.100.1",
+            text = "v0.100.0",   // <--- UPDATED VERSION
             fontSize = 14.sp,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
