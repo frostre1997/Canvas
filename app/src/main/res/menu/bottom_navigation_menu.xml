@@ -1,19 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
-
     <item
         android:id="@+id/nav_resolution"
         android:icon="@drawable/ic_resolution"
-        android:title="Resolution" />
-
+        android:title="@string/title_resolution" />
     <item
         android:id="@+id/nav_frame_rate"
         android:icon="@drawable/ic_frame_rate"
-        android:title="Frame Rate" />
-
+        android:title="@string/title_frame_rate" />
     <item
         android:id="@+id/nav_settings"
         android:icon="@drawable/ic_settings"
-        android:title="Settings" />
-
+        android:title="@string/title_settings" />
 </menu>
