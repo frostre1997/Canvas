@@ -3,13 +3,11 @@ name: Canvas APK
 on:
   push:
     branches:
-      - main
       - master
     tags:
       - 'v*'               # Auto-build when you push a version tag like v0.100.0
   pull_request:
     branches:
-      - main
       - master
 
 jobs:
